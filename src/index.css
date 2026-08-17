@@ -1,0 +1,33 @@
+/* ── Variables ──────────────────────────────────────── */
+:root {
+  --cyan:     #00C8D7;
+  --magenta:  #FF1870;
+  --yellow:   #FFE000;
+  --black:    #0A0A0A;
+  --ink:      #111111;
+  --ink-mid:  #555555;
+  --ink-soft: #999999;
+  --bg:       #F7F7F7;
+  --white:    #FFFFFF;
+  --border:   #E4E4E4;
+  --radius:   10px;
+  --header-h: 56px;
+}
+
+/* ── Reset ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+input, select { font-family: inherit; }
+a { text-decoration: none; }
+
+/* ── MapLibre overrides ─────────────────────────────── */
+.maplibregl-ctrl-logo  { display: none !important; }
+.maplibregl-ctrl-attrib { font-size: 10px !important; background: rgba(0,0,0,.5) !important; color: rgba(255,255,255,.6) !important; }
+.maplibregl-ctrl-attrib a { color: rgba(255,255,255,.6) !important; }

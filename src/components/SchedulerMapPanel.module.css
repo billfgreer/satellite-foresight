@@ -1,0 +1,65 @@
+.wrap {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.map { width: 100%; height: 100%; }
+
+.legend {
+  position: absolute; bottom: 14px; left: 14px;
+  background: rgba(255,255,255,.95);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex; flex-direction: column; gap: 5px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.12);
+  font-size: 11px; font-weight: 600; color: var(--ink-mid);
+}
+
+.legendItem { display: flex; align-items: center; gap: 6px; }
+
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.orbitPanel {
+  position: absolute; top: 14px; left: 14px;
+  background: rgba(255,255,255,.97);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.12);
+  width: 160px;
+}
+
+.orbitPanelTitle {
+  font-size: 10px; font-weight: 800;
+  letter-spacing: .6px; text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+
+.orbitLayerToggles {
+  display: flex; flex-direction: column; gap: 5px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.orbitCheck {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; color: var(--ink-mid);
+  cursor: pointer;
+}
+.orbitCheck input { margin: 0; cursor: pointer; }
+
+.orbitSatList {
+  display: flex; flex-direction: column; gap: 4px;
+}
+
+.orbitSatRow {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; color: var(--ink);
+  font-family: 'SF Mono', monospace;
+  cursor: pointer;
+}
+.orbitSatRow input { margin: 0; cursor: pointer; }
+
+.orbitSwatch { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
