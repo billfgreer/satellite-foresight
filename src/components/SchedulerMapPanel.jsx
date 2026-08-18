@@ -7,6 +7,7 @@ import { SAT_ORBITS, SAT_COLORS, buildOrbitFeatures } from '../lib/orbits.js'
 import styles from './SchedulerMapPanel.module.css'
 
 const SOURCE_ID = 'tasking-areas'
+const CANDIDATE_SOURCE_ID = 'candidate-area'
 const SAT_IDS = Object.keys(SAT_ORBITS)
 
 // Orbit overlays refresh on a timer rather than every render — LEO satellites
@@ -26,12 +27,22 @@ function buildGeoJSON(tasks) {
   }
 }
 
-export default function SchedulerMapPanel({ tasks, hoveredId, selectedId, onTaskClick, onHoverEnter, onHoverLeave }) {
+function buildCandidateGeoJSON(bbox) {
+  if (!bbox) return emptyFC()
+  return { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: bboxToPolygon(bbox), properties: {} }] }
+}
+
+export default function SchedulerMapPanel({
+  tasks, hoveredId, selectedId, onTaskClick, onHoverEnter, onHoverLeave,
+  placingRequest, onTogglePlacing, onMapClickForRequest, candidateBbox,
+}) {
   const containerRef = useRef(null)
   const mapRef       = useRef(null)
   const initialised  = useRef(false)
   const tasksRef     = useRef(tasks)
   const onClickRef   = useRef(onTaskClick)
+  const placingRef   = useRef(placingRequest)
+  const onMapClickForRequestRef = useRef(onMapClickForRequest)
 
   const [enabledSats, setEnabledSats] = useState(() => Object.fromEntries(SAT_IDS.map(id => [id, true])))
   const [showTrack, setShowTrack]     = useState(true)
@@ -44,6 +55,13 @@ export default function SchedulerMapPanel({ tasks, hoveredId, selectedId, onTask
 
   useEffect(() => { tasksRef.current = tasks }, [tasks])
   useEffect(() => { onClickRef.current = onTaskClick }, [onTaskClick])
+  useEffect(() => { placingRef.current = placingRequest }, [placingRequest])
+  useEffect(() => { onMapClickForRequestRef.current = onMapClickForRequest }, [onMapClickForRequest])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (map) map.getCanvas().style.cursor = placingRequest ? 'crosshair' : ''
+  }, [placingRequest])
 
   const refreshOrbits = useCallback(() => {
     const map = mapRef.current
@@ -140,15 +158,35 @@ export default function SchedulerMapPanel({ tasks, hoveredId, selectedId, onTask
         paint: { 'text-color': ['get', 'color'], 'text-halo-color': '#fff', 'text-halo-width': 1.4 },
       }, 'ta-fill')
 
+      // ── Candidate tasking request — the square a user is currently placing/
+      // evaluating. Drawn on top of everything else so it's unmistakable.
+      map.addSource(CANDIDATE_SOURCE_ID, { type: 'geojson', data: emptyFC() })
+      map.addLayer({
+        id: 'candidate-fill', type: 'fill', source: CANDIDATE_SOURCE_ID,
+        paint: { 'fill-color': '#ffffff', 'fill-opacity': .15 },
+      })
+      map.addLayer({
+        id: 'candidate-line', type: 'line', source: CANDIDATE_SOURCE_ID,
+        paint: { 'line-color': '#111111', 'line-width': 2.5, 'line-dasharray': [1.5, 1.5] },
+      })
+
       refreshOrbits()
 
       map.on('click', 'ta-fill', e => {
+        if (placingRef.current) return // placing mode takes over all clicks — see generic handler below
         const f = e.features?.[0]
         const task = tasksRef.current.find(t => t.id === f?.properties.id)
         if (task) onClickRef.current?.(task)
       })
-      map.on('mouseenter', 'ta-fill', () => { map.getCanvas().style.cursor = 'pointer' })
-      map.on('mouseleave', 'ta-fill', () => { map.getCanvas().style.cursor = '' })
+      map.on('mouseenter', 'ta-fill', () => { if (!placingRef.current) map.getCanvas().style.cursor = 'pointer' })
+      map.on('mouseleave', 'ta-fill', () => { if (!placingRef.current) map.getCanvas().style.cursor = '' })
+
+      // Generic click — only acts while placing a new tasking request, regardless
+      // of what's underneath the click (an empty spot or an existing tasking area).
+      map.on('click', e => {
+        if (!placingRef.current) return
+        onMapClickForRequestRef.current?.(e.lngLat)
+      })
 
       // Fit to all tasking areas on first load
       if (tasksRef.current.length) {
@@ -181,6 +219,14 @@ export default function SchedulerMapPanel({ tasks, hoveredId, selectedId, onTask
 
   useEffect(() => {
     const map = mapRef.current
+    if (!map) return
+    const update = () => { map.getSource(CANDIDATE_SOURCE_ID)?.setData(buildCandidateGeoJSON(candidateBbox)) }
+    if (map.isStyleLoaded()) update()
+    else map.once('load', update)
+  }, [candidateBbox])
+
+  useEffect(() => {
+    const map = mapRef.current
     if (!map || !map.isStyleLoaded()) return
     map.setFilter('ta-hover', ['==', 'id', hoveredId || ''])
   }, [hoveredId])
@@ -201,6 +247,16 @@ export default function SchedulerMapPanel({ tasks, hoveredId, selectedId, onTask
   return (
     <div className={styles.wrap}>
       <div ref={containerRef} className={styles.map} />
+
+      <div className={styles.requestControl}>
+        <button
+          className={`${styles.requestBtn} ${placingRequest ? styles.requestBtnActive : ''}`}
+          onClick={onTogglePlacing}
+        >
+          {placingRequest ? '✕ Cancel' : '＋ Add Tasking Request'}
+        </button>
+        {placingRequest && <div className={styles.requestHint}>Click anywhere on the map to place a 5×5km request</div>}
+      </div>
 
       <div className={styles.orbitPanel}>
         <div className={styles.orbitPanelTitle}>Constellation Overlays</div>

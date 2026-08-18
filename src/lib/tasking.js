@@ -18,6 +18,11 @@ export const SATELLITES = ['CS-1', 'CS-2', 'CS-3', 'CS-4', 'CS-5', 'CS-6'].map(i
 }))
 
 export const TASKING_AREA_KM = 5.2
+// A user-submitted tasking *request* is a plain 5x5km square — distinct from
+// the 5.2km scheduled-collection frame size above (which matches the
+// constellation's actual sensor swath). Once an opportunity is scheduled from
+// a request, the request's own bbox becomes that task's bbox as-is.
+export const REQUEST_AREA_KM = 5
 
 // ─── Status pipeline ──────────────────────────────────────────────────────────
 
@@ -139,7 +144,7 @@ const TARGETS = [
 // point of the Scheduler is "what's coming," so nothing is seeded further than
 // FUTURE_CAP_HOURS out, and anything already past its capture stage is recent
 // (captured within the last day or two), not stale history.
-const FUTURE_CAP_HOURS = 4 * 24 // 4 days
+export const FUTURE_CAP_HOURS = 4 * 24 // 4 days
 
 // ─── Mock tasking areas ───────────────────────────────────────────────────────
 // Deliberately spans every pipeline status, and includes two targets — the

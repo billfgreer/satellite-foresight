@@ -15,7 +15,7 @@ const RAD2DEG = 180 / Math.PI
 // always looks live relative to when the page opened.
 const EPOCH_MS = Date.now()
 
-const ALTITUDE_KM = 500
+export const ALTITUDE_KM = 500
 const INCLINATION_DEG = 97.4 // sun-synchronous-like, typical for EO smallsats
 
 // Orbital elements per satellite — same altitude/inclination (uniform fleet, per
@@ -61,12 +61,30 @@ export function groundOffsetForNadirAngle(offNadirDeg, altitudeKm) {
 
 export const FOR_HALF_WIDTH_KM = groundOffsetForNadirAngle(FOR_MAX_OFFNADIR_DEG, ALTITUDE_KM)
 
+/** Inverse of groundOffsetForNadirAngle — the off-nadir look angle needed to reach a target a given ground distance (km) from the sub-satellite point. Closed-form solution of sin(η+λ) = (r/Re)·sin(η) for η. */
+export function offNadirAngleForGroundOffset(groundDistKm, altitudeKm) {
+  const r = EARTH_RADIUS_KM + altitudeKm
+  const k = r / EARTH_RADIUS_KM
+  const lambdaRad = groundDistKm / EARTH_RADIUS_KM
+  const etaRad = Math.atan2(Math.sin(lambdaRad), k - Math.cos(lambdaRad))
+  return etaRad * RAD2DEG
+}
+
+/** Great-circle distance (km) between two lat/lon points. Works fine on unwrapped/continuous longitudes too — sin/cos are periodic, so no antimeridian handling needed here. */
+export function haversineKm(lat1, lon1, lat2, lon2) {
+  const φ1 = lat1 * DEG2RAD, φ2 = lat2 * DEG2RAD
+  const Δφ = (lat2 - lat1) * DEG2RAD
+  const Δλ = (lon2 - lon1) * DEG2RAD
+  const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2
+  return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
 function wrapLon(lon) {
   return ((lon + 180) % 360 + 360) % 360 - 180
 }
 
 /** Sub-satellite point at an absolute time (ms since epoch). Longitude is continuous/unwrapped — callers wrap it at render time so ground tracks don't jump at the antimeridian. */
-function subPointRaw(satId, timeMs) {
+export function subPointRaw(satId, timeMs) {
   const orb = SAT_ORBITS[satId]
   if (!orb) return null
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { statusMeta, relativeFromNow, formatLocal } from '../lib/tasking.js'
+import { formatAtOffset } from '../lib/feasibility.js'
 import styles from './TaskingCallout.module.css'
 
 const STEPS = [
@@ -33,7 +34,11 @@ export default function TaskingCallout({ task, onClose }) {
   const [subscribed, setSubscribed] = useState(false)
 
   const meta = statusMeta(task.status)
-  const tz   = task.timeZone
+  // Curated targets carry a real IANA timezone; feasibility-created custom
+  // requests only have an approximate UTC offset (no real geocoding here).
+  const formatTime = iso => task.timeZone
+    ? formatLocal(iso, task.timeZone)
+    : formatAtOffset(iso, task.utcOffsetHours ?? 0)
 
   function handleSubscribe(e) {
     e.preventDefault()
@@ -86,7 +91,7 @@ export default function TaskingCallout({ task, onClose }) {
             {STEPS.filter(s => task.timestamps[s.key]).map(s => (
               <div key={s.key} className={styles.timelineRow}>
                 <span className={styles.timelineLabel}>{s.label}</span>
-                <span className={styles.timelineTime}>{formatLocal(task.timestamps[s.key], tz)}</span>
+                <span className={styles.timelineTime}>{formatTime(task.timestamps[s.key])}</span>
                 <span className={styles.timelineRel}>{relativeFromNow(task.timestamps[s.key])}</span>
               </div>
             ))}
