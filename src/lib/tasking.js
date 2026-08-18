@@ -103,6 +103,20 @@ export function resolutionFor(nadirDeg, nativeGsd = 0.8) {
   return +(nativeGsd / Math.cos(nadirDeg * Math.PI / 180)).toFixed(2)
 }
 
+// ─── Timeline ─────────────────────────────────────────────────────────────────
+// Shared by the tasking card and the detail callout so both surfaces show the
+// exact same full metadata.
+
+export const TIMELINE_STEPS = [
+  { key: 'requestedAt',          label: 'Requested' },
+  { key: 'taskedAt',             label: 'Tasked' },
+  { key: 'captureAt',            label: 'Capture' },
+  { key: 'downlinkAt',           label: 'Downlink' },
+  { key: 'telemetryEtaAt',       label: 'Telemetry' },
+  { key: 'processingCompleteAt', label: 'Processing complete' },
+  { key: 'availableAt',          label: 'Available' },
+]
+
 // ─── Formatting ───────────────────────────────────────────────────────────────
 
 export function relativeFromNow(iso) {

@@ -29,13 +29,25 @@ export const SAT_ORBITS = {
   'CS-6': { altitudeKm: ALTITUDE_KM, inclinationDeg: INCLINATION_DEG, raanDeg: 300, m0Deg: 150 },
 }
 
+// CS-1 through CS-4 map onto the brand's CMYK palette; CS-5/CS-6 fill out the
+// rest of the constellation with two more distinguishable hues.
 export const SAT_COLORS = {
-  'CS-1': '#e6194b',
-  'CS-2': '#3cb44b',
-  'CS-3': '#4363d8',
-  'CS-4': '#f58231',
-  'CS-5': '#911eb4',
-  'CS-6': '#42d4f4',
+  'CS-1': '#FF1870', // magenta
+  'CS-2': '#00C8D7', // cyan
+  'CS-3': '#FFE000', // yellow
+  'CS-4': '#4B5563', // black/gray (kept off pure black so it stays distinct from ink/text)
+  'CS-5': '#F97316', // orange
+  'CS-6': '#16A34A', // green
+}
+
+// Readable text color to pair with each satellite's background color above.
+export const SAT_TEXT_COLORS = {
+  'CS-1': '#FFFFFF',
+  'CS-2': '#0A0A0A',
+  'CS-3': '#0A0A0A',
+  'CS-4': '#FFFFFF',
+  'CS-5': '#FFFFFF',
+  'CS-6': '#FFFFFF',
 }
 
 // Orbital period is identical for every satellite (same altitude) — used to size

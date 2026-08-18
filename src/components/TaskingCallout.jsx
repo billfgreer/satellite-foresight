@@ -1,18 +1,9 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { statusMeta, relativeFromNow, formatLocal } from '../lib/tasking.js'
+import { statusMeta, relativeFromNow, formatLocal, TIMELINE_STEPS } from '../lib/tasking.js'
 import { formatAtOffset } from '../lib/feasibility.js'
+import { SAT_COLORS, SAT_TEXT_COLORS } from '../lib/orbits.js'
 import styles from './TaskingCallout.module.css'
-
-const STEPS = [
-  { key: 'requestedAt',          label: 'Requested' },
-  { key: 'taskedAt',             label: 'Tasked' },
-  { key: 'captureAt',            label: 'Capture' },
-  { key: 'downlinkAt',           label: 'Downlink' },
-  { key: 'telemetryEtaAt',       label: 'Telemetry' },
-  { key: 'processingCompleteAt', label: 'Processing complete' },
-  { key: 'availableAt',          label: 'Available' },
-]
 
 function QualityBar({ label, value, pct, color }) {
   return (
@@ -73,7 +64,12 @@ export default function TaskingCallout({ task, onClose }) {
             <span className={styles.badge} style={{ background: `${meta.color}22`, color: meta.color, borderColor: `${meta.color}66` }}>
               {meta.label}
             </span>
-            <span className={styles.satChip}>{task.satelliteId || 'Unassigned'}</span>
+            <span
+              className={styles.satChip}
+              style={task.satelliteId ? { background: SAT_COLORS[task.satelliteId], color: SAT_TEXT_COLORS[task.satelliteId] } : undefined}
+            >
+              {task.satelliteId || 'Unassigned'}
+            </span>
             {task.confidence && (
               <span className={styles.confidence}>
                 Confidence: <strong>{task.confidence}</strong>
@@ -88,7 +84,7 @@ export default function TaskingCallout({ task, onClose }) {
           {/* Timeline */}
           <div className={styles.sectionLabel}>Timeline (target-local time)</div>
           <div className={styles.timeline}>
-            {STEPS.filter(s => task.timestamps[s.key]).map(s => (
+            {TIMELINE_STEPS.filter(s => task.timestamps[s.key]).map(s => (
               <div key={s.key} className={styles.timelineRow}>
                 <span className={styles.timelineLabel}>{s.label}</span>
                 <span className={styles.timelineTime}>{formatTime(task.timestamps[s.key])}</span>

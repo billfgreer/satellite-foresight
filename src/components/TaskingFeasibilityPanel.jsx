@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { relativeFromNow } from '../lib/tasking.js'
-import { SAT_COLORS } from '../lib/orbits.js'
+import { SAT_COLORS, SAT_TEXT_COLORS } from '../lib/orbits.js'
 import { findConflicts, averageCloudCover, approxUtcOffsetHours, formatAtOffset } from '../lib/feasibility.js'
 import styles from './TaskingFeasibilityPanel.module.css'
 
@@ -9,11 +9,12 @@ function cloudColor(pct) {
 }
 
 function OpportunityRow({ opportunity, offsetHours, conflicts, onSchedule }) {
-  const color = SAT_COLORS[opportunity.satelliteId]
+  const bg = SAT_COLORS[opportunity.satelliteId]
+  const fg = SAT_TEXT_COLORS[opportunity.satelliteId]
   return (
     <div className={styles.row}>
       <div className={styles.rowTop}>
-        <span className={styles.satChip} style={{ background: color }}>{opportunity.satelliteId}</span>
+        <span className={styles.satChip} style={{ background: bg, color: fg }}>{opportunity.satelliteId}</span>
         <div className={styles.timeBlock}>
           <span className={styles.time}>{formatAtOffset(opportunity.timeIso, offsetHours)}</span>
           <span className={styles.rel}>{relativeFromNow(opportunity.timeIso)}</span>

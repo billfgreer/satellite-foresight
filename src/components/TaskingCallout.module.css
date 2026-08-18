@@ -53,7 +53,7 @@
 .satChip {
   font-size: 11px; font-weight: 700;
   padding: 4px 9px; border-radius: 6px;
-  background: var(--ink); color: var(--white);
+  background: var(--ink); color: var(--white); /* fallback for "Unassigned" */
   font-family: 'SF Mono', monospace;
 }
 
