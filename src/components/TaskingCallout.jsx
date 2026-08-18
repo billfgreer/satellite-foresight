@@ -61,7 +61,7 @@ export default function TaskingCallout({ task, onClose }) {
         <div className={styles.header}>
           <div>
             <div className={styles.taskId}>{task.id}</div>
-            <div className={styles.eventName}>{task.eventName}</div>
+            <div className={styles.coords}>{task.center[1].toFixed(3)}, {task.center[0].toFixed(3)}</div>
           </div>
           <button className={styles.close} onClick={onClose}>✕</button>
         </div>

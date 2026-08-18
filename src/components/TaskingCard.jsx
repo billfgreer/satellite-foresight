@@ -34,11 +34,9 @@ export default function TaskingCard({ task, isHovered, isSelected, onOpen, onMou
         <span className={styles.badge} style={{ background: `${meta.color}22`, color: meta.color, borderColor: `${meta.color}66` }}>
           {meta.label}
         </span>
-        <span className={styles.spacer} />
-        <span className={styles.taskId}>{task.id.slice(-8)}</span>
       </div>
 
-      <div className={styles.eventName}>{task.eventName}</div>
+      <div className={styles.taskIdHeadline}>{task.id}</div>
 
       <div className={styles.bottomRow}>
         <span className={styles.milestone}>

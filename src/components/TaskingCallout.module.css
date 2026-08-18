@@ -24,7 +24,7 @@
   flex-shrink: 0;
 }
 .taskId { font-size: 14px; font-weight: 800; color: var(--ink); font-family: 'SF Mono', monospace; letter-spacing: -.2px; }
-.eventName { font-size: 12px; color: var(--ink-soft); margin-top: 3px; font-weight: 500; }
+.coords { font-size: 12px; color: var(--ink-soft); margin-top: 3px; font-weight: 500; font-family: 'SF Mono', monospace; }
 
 .close {
   width: 28px; height: 28px; border-radius: 8px;

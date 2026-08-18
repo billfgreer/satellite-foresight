@@ -27,14 +27,12 @@
   border: 1px solid;
 }
 
-.spacer { flex: 1; }
-
-.taskId {
-  font-size: 10px; color: var(--ink-soft);
+.taskIdHeadline {
+  font-size: 13px; font-weight: 800; color: var(--ink);
   font-family: 'SF Mono', monospace;
+  letter-spacing: -.2px;
+  margin-bottom: 6px;
 }
-
-.eventName { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
 
 .bottomRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 

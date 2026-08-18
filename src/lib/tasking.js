@@ -124,20 +124,20 @@ export function formatLocal(iso, timeZone) {
   }) + ' local'
 }
 
-// ─── Linked targets ───────────────────────────────────────────────────────────
-// Standalone list of named targets a tasking area can be linked to. Deliberately
-// NOT sourced from any STAC catalog or the Disaster Commons events list — this
-// app knows nothing about STAC. A real integration would swap this out for
-// whatever system originates tasking requests (internal ops tooling, a partner
-// feed, a public request form, etc).
+// ─── Seed locations ───────────────────────────────────────────────────────────
+// Internal-only geographic seeds used to spread the mock tasking areas around
+// the globe (and to cluster a few of them for the multi-satellite coordination
+// story). Tasking happens before any "event" is named or curated — a tasking
+// area's only identity is its Tasking ID, never a disaster/event name — so
+// these seeds carry no name and are never surfaced to the UI.
 
-const TARGETS = [
-  { id: 'venezuela-earthquake-2026', name: 'Venezuela Earthquakes 2026', center: [-68.472, 10.435], timeZone: 'America/Caracas' },
-  { id: 'texas-flooding-2025',       name: 'Texas Hill Country Floods 2025', center: [-99.1, 29.9], timeZone: 'America/Chicago' },
-  { id: 'nigeria-flooding-2025',     name: 'Nigeria Flooding 2025',       center: [7.0, 6.0], timeZone: 'Africa/Lagos' },
-  { id: 'myanmar-earthquake-2025',   name: 'Myanmar Earthquake 2025',    center: [96.1, 21.9], timeZone: 'Asia/Yangon' },
-  { id: 'philippines-typhoon-2026',  name: 'Philippines Typhoon Watch 2026', center: [121.774, 12.879], timeZone: 'Asia/Manila' },
-  { id: 'chile-wildfire-2026',       name: 'Valparaíso Wildfire Watch 2026', center: [-71.6, -33.05], timeZone: 'America/Santiago' },
+const SEED_LOCATIONS = [
+  { id: 'seed-1', center: [-68.472, 10.435], timeZone: 'America/Caracas' },
+  { id: 'seed-2', center: [-99.1, 29.9], timeZone: 'America/Chicago' },
+  { id: 'seed-3', center: [7.0, 6.0], timeZone: 'Africa/Lagos' },
+  { id: 'seed-4', center: [96.1, 21.9], timeZone: 'Asia/Yangon' },
+  { id: 'seed-5', center: [121.774, 12.879], timeZone: 'Asia/Manila' },
+  { id: 'seed-6', center: [-71.6, -33.05], timeZone: 'America/Santiago' },
 ]
 
 // Every collection here is a live, forward-looking schedule entry — the whole
@@ -147,86 +147,86 @@ const TARGETS = [
 export const FUTURE_CAP_HOURS = 4 * 24 // 4 days
 
 // ─── Mock tasking areas ───────────────────────────────────────────────────────
-// Deliberately spans every pipeline status, and includes two targets — the
-// Venezuela earthquake and the Philippines typhoon watch — each with 3 tiled
-// tasking areas assigned to different satellites, the multi-satellite
-// coordination story from spec 5.6.2.
+// Deliberately spans every pipeline status, and includes two seed locations
+// (seed-1 and seed-5) with 3 tiled tasking areas each, assigned to different
+// satellites — the multi-satellite coordination story from spec 5.6.2. Tasking
+// areas are identified only by Tasking ID; no event/disaster name is attached.
 
 const RAW_TASKS = [
   {
-    seq: 1, targetId: 'venezuela-earthquake-2026', dxKm: -8, dyKm: 6,
+    seq: 1, targetId: 'seed-1', dxKm: -8, dyKm: 6,
     satelliteId: 'CS-2', status: 'Tasked', cloudCoverPct: 8, nadirDeg: 4.2,
     hours: { requestedAt: -2, taskedAt: -1, captureAt: 3 },
     note: 'Tile 1 of 3 — coordinated coverage of the earthquake-affected coastline',
   },
   {
-    seq: 2, targetId: 'venezuela-earthquake-2026', dxKm: 0, dyKm: 6,
+    seq: 2, targetId: 'seed-1', dxKm: 0, dyKm: 6,
     satelliteId: 'CS-5', status: 'Captured', cloudCoverPct: 14, nadirDeg: 11,
     hours: { requestedAt: -20, taskedAt: -18, captureAt: -2, downlinkAt: 0.5 },
     note: 'Tile 2 of 3 — coordinated coverage of the earthquake-affected coastline',
   },
   {
-    seq: 3, targetId: 'venezuela-earthquake-2026', dxKm: 8, dyKm: 6,
+    seq: 3, targetId: 'seed-1', dxKm: 8, dyKm: 6,
     satelliteId: 'CS-6', status: 'Awaiting Telemetry', cloudCoverPct: 21, nadirDeg: 15,
     hours: { requestedAt: -24, taskedAt: -22, captureAt: -6, downlinkAt: -5, telemetryEtaAt: 2 },
     note: 'Tile 3 of 3 — coordinated coverage of the earthquake-affected coastline',
   },
   {
-    seq: 4, targetId: 'texas-flooding-2025', dxKm: 0, dyKm: 0,
+    seq: 4, targetId: 'seed-2', dxKm: 0, dyKm: 0,
     satelliteId: null, status: 'Requested', cloudCoverPct: null, nadirDeg: null,
     hours: { requestedAt: -0.5 },
     note: 'Awaiting satellite assignment',
   },
   {
-    seq: 5, targetId: 'texas-flooding-2025', dxKm: 6, dyKm: -4,
+    seq: 5, targetId: 'seed-2', dxKm: 6, dyKm: -4,
     satelliteId: 'CS-3', status: 'Processing', cloudCoverPct: 9, nadirDeg: 6,
     hours: { requestedAt: -8, taskedAt: -7, captureAt: -3, downlinkAt: -2.5, telemetryEtaAt: -2, processingCompleteAt: 0.75, availableAt: 1.25 },
     note: null,
   },
   {
-    seq: 6, targetId: 'nigeria-flooding-2025', dxKm: 0, dyKm: 0,
+    seq: 6, targetId: 'seed-3', dxKm: 0, dyKm: 0,
     satelliteId: 'CS-4', status: 'Tasked', cloudCoverPct: 11, nadirDeg: 7,
     hours: { requestedAt: -4, taskedAt: -3, captureAt: 30 },
     note: null,
   },
   {
-    seq: 7, targetId: 'nigeria-flooding-2025', dxKm: 5, dyKm: 3,
+    seq: 7, targetId: 'seed-3', dxKm: 5, dyKm: 3,
     satelliteId: 'CS-1', status: 'Delayed', cloudCoverPct: 62, nadirDeg: 9,
     hours: { requestedAt: -10, taskedAt: -9, captureAt: 14 },
     note: 'Weather — cloud cover forecast rose above usable threshold; retasked for next clear pass',
   },
   {
-    seq: 8, targetId: 'myanmar-earthquake-2025', dxKm: 0, dyKm: 0,
+    seq: 8, targetId: 'seed-4', dxKm: 0, dyKm: 0,
     satelliteId: 'CS-6', status: 'Tasked', cloudCoverPct: 18, nadirDeg: 13,
     hours: { requestedAt: -1, taskedAt: -0.5, captureAt: 7 },
     note: null,
   },
   {
-    seq: 9, targetId: 'philippines-typhoon-2026', dxKm: 0, dyKm: 0,
+    seq: 9, targetId: 'seed-5', dxKm: 0, dyKm: 0,
     satelliteId: null, status: 'Requested', cloudCoverPct: null, nadirDeg: null,
     hours: { requestedAt: -0.2 },
     note: 'Tile 1 of 3 — coordinated coverage of the projected landfall track — awaiting satellite assignment',
   },
   {
-    seq: 10, targetId: 'philippines-typhoon-2026', dxKm: 6, dyKm: -3,
+    seq: 10, targetId: 'seed-5', dxKm: 6, dyKm: -3,
     satelliteId: 'CS-4', status: 'Tasked', cloudCoverPct: 24, nadirDeg: 18,
     hours: { requestedAt: -3, taskedAt: -2, captureAt: 50 },
     note: 'Tile 2 of 3 — coordinated coverage of the projected landfall track',
   },
   {
-    seq: 11, targetId: 'philippines-typhoon-2026', dxKm: -5, dyKm: 4,
+    seq: 11, targetId: 'seed-5', dxKm: -5, dyKm: 4,
     satelliteId: 'CS-1', status: 'Captured', cloudCoverPct: 31, nadirDeg: 22,
     hours: { requestedAt: -16, taskedAt: -15, captureAt: -4, downlinkAt: 1 },
     note: 'Tile 3 of 3 — coordinated coverage of the projected landfall track',
   },
   {
-    seq: 12, targetId: 'chile-wildfire-2026', dxKm: 0, dyKm: 0,
+    seq: 12, targetId: 'seed-6', dxKm: 0, dyKm: 0,
     satelliteId: 'CS-5', status: 'Tasked', cloudCoverPct: 4, nadirDeg: 10,
     hours: { requestedAt: -5, taskedAt: -4, captureAt: 80 },
     note: null,
   },
   {
-    seq: 13, targetId: 'chile-wildfire-2026', dxKm: 4, dyKm: -2,
+    seq: 13, targetId: 'seed-6', dxKm: 4, dyKm: -2,
     satelliteId: 'CS-2', status: 'Processing', cloudCoverPct: 6, nadirDeg: 8,
     hours: { requestedAt: -12, taskedAt: -11, captureAt: -5, downlinkAt: -4.5, telemetryEtaAt: -4, processingCompleteAt: 3, availableAt: 4 },
     note: null,
@@ -234,15 +234,15 @@ const RAW_TASKS = [
 ]
 
 function buildTask(spec) {
-  const target = TARGETS.find(t => t.id === spec.targetId)
-  if (!target) return null
+  const seed = SEED_LOCATIONS.find(s => s.id === spec.targetId)
+  if (!seed) return null
 
   const maxHours = Math.max(...Object.values(spec.hours))
   if (maxHours > FUTURE_CAP_HOURS) {
     console.warn(`tasking.js: seq ${spec.seq} has a timestamp ${maxHours}h out — exceeds the ${FUTURE_CAP_HOURS}h (4-day) cap for scheduled collections`)
   }
 
-  const center = destPoint(target.center, spec.dxKm, spec.dyKm)
+  const center = destPoint(seed.center, spec.dxKm, spec.dyKm)
   const bbox   = squareBbox(center)
 
   const timestamps = Object.fromEntries(
@@ -255,9 +255,7 @@ function buildTask(spec) {
   return {
     id: taskId,
     imageId,
-    eventId: target.id,
-    eventName: target.name,
-    timeZone: target.timeZone,
+    timeZone: seed.timeZone,
     center,
     bbox,
     satelliteId: spec.satelliteId,

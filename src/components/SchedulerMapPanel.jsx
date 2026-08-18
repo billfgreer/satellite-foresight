@@ -39,6 +39,10 @@ export default function SchedulerMapPanel({
   const containerRef = useRef(null)
   const mapRef       = useRef(null)
   const initialised  = useRef(false)
+  // map.isStyleLoaded() flickers false whenever tiles are still streaming in —
+  // not a reliable "ready" signal. This flips once, in the load handler below,
+  // and stays true for the component's lifetime.
+  const mapReadyRef  = useRef(false)
   const tasksRef     = useRef(tasks)
   const onClickRef   = useRef(onTaskClick)
   const placingRef   = useRef(placingRequest)
@@ -65,7 +69,7 @@ export default function SchedulerMapPanel({
 
   const refreshOrbits = useCallback(() => {
     const map = mapRef.current
-    if (!map || !map.isStyleLoaded()) return
+    if (!map || !mapReadyRef.current) return
     const { enabledSats: en, showTrack: st, showFov: sf, showFor: sr } = enabledRef.current
 
     const trackFC = emptyFC(), fovFC = emptyFC(), forFC = emptyFC(), posFC = emptyFC()
@@ -197,6 +201,8 @@ export default function SchedulerMapPanel({
           { padding: 80, duration: 0, maxZoom: 6 }
         )
       }
+
+      mapReadyRef.current = true
     })
 
     const interval = setInterval(refreshOrbits, ORBIT_REFRESH_MS)
@@ -205,6 +211,7 @@ export default function SchedulerMapPanel({
       clearInterval(interval)
       map.remove()
       mapRef.current = null
+      mapReadyRef.current = false
       initialised.current = false
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -213,7 +220,7 @@ export default function SchedulerMapPanel({
     const map = mapRef.current
     if (!map) return
     const update = () => { map.getSource(SOURCE_ID)?.setData(buildGeoJSON(tasks)) }
-    if (map.isStyleLoaded()) update()
+    if (mapReadyRef.current) update()
     else map.once('load', update)
   }, [tasks])
 
@@ -221,20 +228,30 @@ export default function SchedulerMapPanel({
     const map = mapRef.current
     if (!map) return
     const update = () => { map.getSource(CANDIDATE_SOURCE_ID)?.setData(buildCandidateGeoJSON(candidateBbox)) }
-    if (map.isStyleLoaded()) update()
+    if (mapReadyRef.current) update()
     else map.once('load', update)
   }, [candidateBbox])
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !map.isStyleLoaded()) return
+    if (!map || !mapReadyRef.current) return
     map.setFilter('ta-hover', ['==', 'id', hoveredId || ''])
   }, [hoveredId])
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !map.isStyleLoaded()) return
+    if (!map || !mapReadyRef.current) return
     map.setFilter('ta-selected', ['==', 'id', selectedId || ''])
+  }, [selectedId])
+
+  // Selecting a task (card click or map click) flies the map to its AOI.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReadyRef.current || !selectedId) return
+    const task = tasksRef.current.find(t => t.id === selectedId)
+    if (!task?.bbox) return
+    const [w, s, e, n] = task.bbox
+    map.fitBounds([[w, s], [e, n]], { padding: 120, maxZoom: 11, duration: 800 })
   }, [selectedId])
 
   // Re-render orbit overlays immediately whenever a toggle changes (don't wait for the timer).

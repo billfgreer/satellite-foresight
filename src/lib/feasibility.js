@@ -105,7 +105,7 @@ export function findConflicts(opportunity, existingTasks, aoiBbox) {
         conflicts.push({
           type: 'satellite-busy',
           taskId: task.id,
-          detail: `${opportunity.satelliteId} is already committed to ${task.eventName} (${task.id}) around this time`,
+          detail: `${opportunity.satelliteId} is already committed to ${task.id} around this time`,
         })
       }
     }
@@ -113,7 +113,7 @@ export function findConflicts(opportunity, existingTasks, aoiBbox) {
       conflicts.push({
         type: 'overlap',
         taskId: task.id,
-        detail: `Overlaps an existing tasking area for ${task.eventName} (${task.id})`,
+        detail: `Overlaps existing tasking area ${task.id}`,
       })
     }
   }
@@ -139,12 +139,10 @@ export function formatAtOffset(iso, offsetHours) {
 
 export function createTaskFromOpportunity(opportunity, aoiCenter, aoiBbox, seq) {
   const nowIso = new Date().toISOString()
-  const [lon, lat] = aoiCenter
+  const [lon] = aoiCenter
   return {
     id: makeTaskId(nowIso, seq),
     imageId: null,
-    eventId: `custom-${seq}`,
-    eventName: `Custom Request @ ${lat.toFixed(2)}, ${lon.toFixed(2)}`,
     timeZone: null,
     utcOffsetHours: approxUtcOffsetHours(lon),
     center: aoiCenter,
