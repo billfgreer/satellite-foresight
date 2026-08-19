@@ -22,13 +22,9 @@
 }
 
 .logoMark {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--cyan);
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
-  box-shadow: 0 0 10px rgba(0,200,215,.5);
 }
 
 .tagline {
