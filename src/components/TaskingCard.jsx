@@ -39,6 +39,14 @@ export default function TaskingCard({ task, isHovered, isSelected, onOpen, onMou
       <div className={styles.taskIdHeadline}>{task.id}</div>
       <div className={styles.coords}>{task.center[1].toFixed(3)}, {task.center[0].toFixed(3)}</div>
 
+      <div className={task.status === 'Delivered' ? styles.accessHintDelivered : styles.accessHint}>
+        {task.status === 'Delivered'
+          ? '📡 View in STAC Catalog'
+          : task.timestamps.availableAt
+            ? <>🔔 Available <strong>{relativeFromNow(task.timestamps.availableAt)}</strong></>
+            : '🔔 Alerts available once scheduled'}
+      </div>
+
       {task.status === 'Delayed' && task.note && (
         <div className={styles.delayNote}>⚠ {task.note}</div>
       )}
@@ -69,10 +77,6 @@ export default function TaskingCard({ task, isHovered, isSelected, onOpen, onMou
 
       {task.note && task.status !== 'Delayed' && (
         <div className={styles.metaNote}>{task.note}</div>
-      )}
-
-      {task.imageId && (
-        <div className={styles.imageIdRow}>Delivered as <span className={styles.mono}>{task.imageId}</span></div>
       )}
     </div>
   )

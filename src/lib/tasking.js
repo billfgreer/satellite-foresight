@@ -26,23 +26,28 @@ export const REQUEST_AREA_KM = 5
 
 // ─── Status pipeline ──────────────────────────────────────────────────────────
 
+// Four map-visible buckets: backlog (yellow) → tasked (magenta) → processing
+// (orange — capture happened but delivery hasn't) → delivered (cyan). Delayed
+// shares the "tasked" color (it's still just awaiting capture, on a revised
+// schedule) but keeps its own distinct label/note so the delay itself is never
+// hidden.
 export const STATUS_META = {
-  'Requested':          { color: '#FFE000', group: 'pending',   label: 'Requested' },
-  'Tasked':             { color: '#FFE000', group: 'pending',   label: 'Tasked' },
-  'Captured':           { color: '#00C8D7', group: 'inflight',  label: 'Captured' },
-  'Downlinked':         { color: '#00C8D7', group: 'inflight',  label: 'Downlinked' },
-  'Awaiting Telemetry': { color: '#00C8D7', group: 'inflight',  label: 'Awaiting Telemetry' },
-  'Processing':         { color: '#00C8D7', group: 'inflight',  label: 'Processing' },
-  'Delivered':          { color: '#22c55e', group: 'delivered', label: 'Delivered' },
-  'Delayed':            { color: '#f2994a', group: 'delayed',   label: 'Delayed / Rescheduled' },
+  'Requested':          { color: '#FFE000', group: 'backlog',    label: 'Requested' },
+  'Tasked':             { color: '#FF1870', group: 'tasked',     label: 'Tasked' },
+  'Captured':           { color: '#F97316', group: 'processing', label: 'Captured' },
+  'Downlinked':         { color: '#F97316', group: 'processing', label: 'Downlinked' },
+  'Awaiting Telemetry': { color: '#F97316', group: 'processing', label: 'Awaiting Telemetry' },
+  'Processing':         { color: '#F97316', group: 'processing', label: 'Processing' },
+  'Delivered':          { color: '#00C8D7', group: 'delivered',  label: 'Delivered' },
+  'Delayed':            { color: '#FF1870', group: 'tasked',     label: 'Delayed / Rescheduled' },
 }
 
 export const STATUS_GROUPS = [
-  { id: 'all',       label: 'All' },
-  { id: 'pending',   label: 'Pending' },
-  { id: 'inflight',  label: 'In Flight' },
-  { id: 'delivered', label: 'Delivered' },
-  { id: 'delayed',   label: 'Delayed' },
+  { id: 'all',        label: 'All' },
+  { id: 'backlog',    label: 'Backlog' },
+  { id: 'tasked',     label: 'Tasked' },
+  { id: 'processing', label: 'Processing' },
+  { id: 'delivered',  label: 'Delivered' },
 ]
 
 export function statusMeta(status) {
@@ -243,6 +248,18 @@ const RAW_TASKS = [
     seq: 13, targetId: 'seed-6', dxKm: 4, dyKm: -2,
     satelliteId: 'CS-2', status: 'Processing', cloudCoverPct: 6, nadirDeg: 8,
     hours: { requestedAt: -12, taskedAt: -11, captureAt: -5, downlinkAt: -4.5, telemetryEtaAt: -4, processingCompleteAt: 3, availableAt: 4 },
+    note: null,
+  },
+  {
+    seq: 14, targetId: 'seed-2', dxKm: -6, dyKm: 3,
+    satelliteId: 'CS-1', status: 'Delivered', cloudCoverPct: 7, nadirDeg: 5,
+    hours: { requestedAt: -30, taskedAt: -28, captureAt: -20, downlinkAt: -19, telemetryEtaAt: -18, processingCompleteAt: -2, availableAt: -1 },
+    note: null,
+  },
+  {
+    seq: 15, targetId: 'seed-4', dxKm: 5, dyKm: -3,
+    satelliteId: 'CS-3', status: 'Delivered', cloudCoverPct: 12, nadirDeg: 9,
+    hours: { requestedAt: -40, taskedAt: -38, captureAt: -25, downlinkAt: -24, telemetryEtaAt: -23, processingCompleteAt: -6, availableAt: -3 },
     note: null,
   },
 ]
