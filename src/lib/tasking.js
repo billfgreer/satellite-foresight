@@ -4,6 +4,8 @@
 // or the Disaster Commons imagery viewer. Timestamps are generated relative to
 // page-load time so the demo always reads as "live."
 
+import { AOI_SEED_COORDS } from './aoiSeeds.js'
+
 const HOUR = 3_600_000
 const NOW  = Date.now()
 
@@ -92,6 +94,14 @@ export function bboxToPolygon(bbox) {
     type: 'Polygon',
     coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]],
   }
+}
+
+// No real timezone lookup for arbitrary coordinates — this rough "15° per
+// hour" approximation stands in for one, shared by every code path that
+// doesn't have a real IANA zone (custom feasibility requests, AOI-seeded
+// examples below).
+export function approxUtcOffsetHours(lon) {
+  return Math.round(lon / 15)
 }
 
 // ─── Derived fields ───────────────────────────────────────────────────────────
@@ -300,7 +310,143 @@ function buildTask(spec) {
   }
 }
 
-export const MOCK_TASKS = RAW_TASKS.map(buildTask).filter(Boolean)
+// ─── AOI-seeded example tasks ─────────────────────────────────────────────────
+// Real-world example locations (see aoiSeeds.js) turned into tasking-area
+// examples programmatically — hand-authoring 125 of these isn't practical.
+// Status/satellite/timing/cloud-cover are all deterministic pseudo-random
+// (same seed index always produces the same example), generated fresh
+// relative to page-load time like everything else in this file.
+
+const SAT_ID_LIST = SATELLITES.map(s => s.id)
+
+// Small seedable PRNG (mulberry32) — deterministic per AOI index, so reloading
+// the page doesn't reshuffle which examples look like what.
+function mulberry32(seed) {
+  let a = seed
+  return function rand() {
+    a |= 0; a = (a + 0x6D2B79F5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function pickStatus(x) {
+  if (x < 0.22) return 'Requested'
+  if (x < 0.52) return 'Tasked'
+  if (x < 0.67) return 'Captured'
+  if (x < 0.74) return 'Downlinked'
+  if (x < 0.80) return 'Awaiting Telemetry'
+  if (x < 0.90) return 'Processing'
+  if (x < 0.97) return 'Delivered'
+  return 'Delayed'
+}
+
+// Builds hours-from-now offsets that are always chronologically consistent
+// (each stage strictly before/after the one that causes it), regardless of
+// how far the random draw pushes any single gap.
+function hoursForStatus(status, r) {
+  switch (status) {
+    case 'Requested':
+      return { requestedAt: -(0.1 + r() * 3) }
+    case 'Tasked': {
+      const requestedAt = -(1 + r() * 6)
+      const taskedAt = requestedAt + (0.3 + r() * 1.5)
+      const captureAt = 1 + r() * 89
+      return { requestedAt, taskedAt, captureAt }
+    }
+    case 'Delayed': {
+      const requestedAt = -(10 + r() * 20)
+      const taskedAt = requestedAt + (0.5 + r() * 2)
+      const captureAt = 5 + r() * 85
+      return { requestedAt, taskedAt, captureAt }
+    }
+    case 'Captured': {
+      const captureAt = -(0.3 + r() * 8)
+      const downlinkAt = captureAt + (0.2 + r() * 2)
+      const taskedAt = captureAt - (1 + r() * 3)
+      const requestedAt = taskedAt - (0.5 + r() * 3)
+      return { requestedAt, taskedAt, captureAt, downlinkAt }
+    }
+    case 'Downlinked':
+    case 'Awaiting Telemetry': {
+      const downlinkAt = -(1 + r() * 10)
+      const telemetryEtaAt = downlinkAt + (0.3 + r() * 3)
+      const captureAt = downlinkAt - (0.3 + r() * 2)
+      const taskedAt = captureAt - (1 + r() * 3)
+      const requestedAt = taskedAt - (0.5 + r() * 3)
+      return { requestedAt, taskedAt, captureAt, downlinkAt, telemetryEtaAt }
+    }
+    case 'Processing': {
+      const telemetryEtaAt = -(1 + r() * 8)
+      const processingCompleteAt = 0.2 + r() * 4
+      const availableAt = processingCompleteAt + (0.2 + r() * 1.5)
+      const downlinkAt = telemetryEtaAt - (0.3 + r() * 2)
+      const captureAt = downlinkAt - (0.3 + r() * 2)
+      const taskedAt = captureAt - (1 + r() * 3)
+      const requestedAt = taskedAt - (0.5 + r() * 3)
+      return { requestedAt, taskedAt, captureAt, downlinkAt, telemetryEtaAt, processingCompleteAt, availableAt }
+    }
+    case 'Delivered': {
+      const availableAt = -(0.5 + r() * 5)
+      const processingCompleteAt = availableAt - (0.2 + r() * 2)
+      const telemetryEtaAt = processingCompleteAt - (0.3 + r() * 2)
+      const downlinkAt = telemetryEtaAt - (0.3 + r() * 1.5)
+      const captureAt = downlinkAt - (0.3 + r() * 1.5)
+      const taskedAt = captureAt - (1 + r() * 5)
+      const requestedAt = taskedAt - (0.5 + r() * 3)
+      return { requestedAt, taskedAt, captureAt, downlinkAt, telemetryEtaAt, processingCompleteAt, availableAt }
+    }
+    default:
+      return { requestedAt: -1 }
+  }
+}
+
+function buildAoiTask(center, index) {
+  const r = mulberry32(index * 7919 + 13)
+
+  const status = pickStatus(r())
+  const satelliteId = status === 'Requested' ? null : SAT_ID_LIST[Math.floor(r() * SAT_ID_LIST.length)]
+  const cloudCoverPct = status === 'Requested' ? null
+    : status === 'Delayed' ? Math.round(40 + r() * 55)
+    : Math.round(r() * 50)
+  const nadirDeg = status === 'Requested' ? null : Math.round((r() * 28) * 10) / 10
+  const hours = hoursForStatus(status, r)
+  const note = status === 'Delayed'
+    ? 'Weather — cloud cover forecast rose above usable threshold; retasked for next clear pass'
+    : status === 'Requested' ? 'Awaiting satellite assignment' : null
+
+  const bbox = squareBbox(center)
+  const timestamps = Object.fromEntries(
+    Object.entries(hours).map(([k, h]) => [k, hoursFromNow(h)])
+  )
+
+  const seq = 2000 + index
+  const taskId  = makeTaskId(timestamps.requestedAt, seq)
+  const imageId = status === 'Delivered' ? makeImageId(taskId) : null
+
+  return {
+    id: taskId,
+    imageId,
+    timeZone: null,
+    utcOffsetHours: approxUtcOffsetHours(center[0]),
+    center,
+    bbox,
+    satelliteId,
+    status,
+    cloudCoverPct,
+    nadirDeg,
+    resolutionM: resolutionFor(nadirDeg),
+    confidence: confidenceFor(cloudCoverPct),
+    note,
+    timestamps,
+  }
+}
+
+export const MOCK_TASKS = [
+  ...RAW_TASKS.map(buildTask).filter(Boolean),
+  ...AOI_SEED_COORDS.map((center, i) => buildAoiTask(center, i)),
+]
 
 /** The single most relevant upcoming/estimate timestamp for a task — used for sorting and countdowns. */
 export function nextMilestone(task) {

@@ -7,7 +7,7 @@ import {
   SAT_ORBITS, ALTITUDE_KM, FOR_HALF_WIDTH_KM,
   subPointRaw, offNadirAngleForGroundOffset, haversineKm,
 } from './orbits.js'
-import { FUTURE_CAP_HOURS, confidenceFor, resolutionFor, makeTaskId } from './tasking.js'
+import { FUTURE_CAP_HOURS, confidenceFor, resolutionFor, makeTaskId, approxUtcOffsetHours } from './tasking.js'
 
 const STEP_SEC = 15
 const SATELLITE_BUSY_BUFFER_MIN = 15
@@ -121,10 +121,6 @@ export function findConflicts(opportunity, existingTasks, aoiBbox) {
 }
 
 // ─── Approximate local time (no real timezone lookup for arbitrary AOIs) ─────
-
-export function approxUtcOffsetHours(lon) {
-  return Math.round(lon / 15)
-}
 
 export function formatAtOffset(iso, offsetHours) {
   if (!iso) return null

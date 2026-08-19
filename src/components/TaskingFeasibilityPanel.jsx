@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom'
-import { relativeFromNow } from '../lib/tasking.js'
+import { relativeFromNow, approxUtcOffsetHours } from '../lib/tasking.js'
 import { SAT_COLORS, SAT_TEXT_COLORS } from '../lib/orbits.js'
-import { findConflicts, averageCloudCover, approxUtcOffsetHours, formatAtOffset } from '../lib/feasibility.js'
+import { findConflicts, averageCloudCover, formatAtOffset } from '../lib/feasibility.js'
 import styles from './TaskingFeasibilityPanel.module.css'
 
 function cloudColor(pct) {
